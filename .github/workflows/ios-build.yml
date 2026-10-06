@@ -2,8 +2,7 @@ name: iOS Build
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -17,31 +16,44 @@ jobs:
       - name: Install XcodeGen
         run: brew install xcodegen
 
+      - name: Show Xcode version
+        run: xcodebuild -version
+
       - name: Generate Xcode project
         run: xcodegen generate
 
       - name: Build iOS app
-        id: build
-        continue-on-error: true
+        shell: bash
         run: |
           set -o pipefail
           xcodebuild \
             -project YoneticiAsistani.xcodeproj \
             -scheme YoneticiAsistani \
             -sdk iphonesimulator \
+            -configuration Debug \
             -destination 'generic/platform=iOS Simulator' \
             CODE_SIGNING_ALLOWED=NO \
             build 2>&1 | tee build.log
 
       - name: Show compiler errors
         if: always()
+        shell: bash
         run: |
-          echo "## Derleme Hataları" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          grep -E "error:|warning:" build.log | tail -n 100 >> "$GITHUB_STEP_SUMMARY" || true
+          echo "## Derleme Sonucu" >> "$GITHUB_STEP_SUMMARY"
+          if [ -f build.log ]; then
+            echo '```text' >> "$GITHUB_STEP_SUMMARY"
+            grep -E "error:|warning:" build.log | tail -n 100 >> "$GITHUB_STEP_SUMMARY" || true
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            echo "===== SON 150 SATIR ====="
+            tail -n 150 build.log
+          else
+            echo "build.log bulunamadı."
+          fi
 
-      - name: Fail if build failed
-        if: steps.build.outcome == 'failure'
-        run: |
-          echo "iOS derlemesi başarısız oldu."
-          exit 1
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build-log
+          path: build.log
+          if-no-files-found: ignore

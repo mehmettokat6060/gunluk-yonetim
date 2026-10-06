@@ -5,24 +5,28 @@ struct CalendarView: View {
     @State private var selectedDate = Date()
     @State private var showingAdd = false
 
-    var selectedPrograms: [ProgramItem] {
-        store.programs.filter { Calendar.current.isDate($0.date, inSameDayAs: selectedDate) }.sorted { $0.date < $1.date }
+    private var selectedPrograms: [ProgramItem] {
+        store.programs
+            .filter { Calendar.current.isDate($0.date, inSameDayAs: selectedDate) }
+            .sorted { $0.date < $1.date }
     }
 
     var body: some View {
         NavigationStack {
-            VStack {
+            VStack(spacing: 0) {
                 DatePicker("Tarih", selection: $selectedDate, displayedComponents: .date)
                     .datePickerStyle(.graphical)
                     .padding(.horizontal)
 
                 List {
-                    Section(selectedDate.formatted(.dateTime.weekday(.wide).day().month(.wide))) {
+                    Section(header: Text(sectionTitle)) {
                         if selectedPrograms.isEmpty {
                             Text("Bu gün için program bulunmuyor.")
                                 .foregroundStyle(.secondary)
                         } else {
-                            ForEach(selectedPrograms) { ProgramRow(item: $0) }
+                            ForEach(selectedPrograms) { item in
+                                ProgramRow(item: item)
+                            }
                         }
                     }
                 }
@@ -30,10 +34,12 @@ struct CalendarView: View {
             }
             .navigationTitle("Takvim")
             .toolbar {
-                Button {
-                    showingAdd = true
-                } label: {
-                    Image(systemName: "plus")
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showingAdd = true
+                    } label: {
+                        Image(systemName: "plus")
+                    }
                 }
             }
             .sheet(isPresented: $showingAdd) {
@@ -41,5 +47,12 @@ struct CalendarView: View {
                     .environmentObject(store)
             }
         }
+    }
+
+    private var sectionTitle: String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "tr_TR")
+        formatter.dateFormat = "EEEE, d MMMM"
+        return formatter.string(from: selectedDate).capitalized
     }
 }

@@ -1,10 +1,8 @@
 name: YoneticiAsistani
-
 options:
   bundleIdPrefix: com.mehmettokat
   deploymentTarget:
     iOS: "17.0"
-
 targets:
   YoneticiAsistani:
     type: application

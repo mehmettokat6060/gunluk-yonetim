@@ -10,7 +10,15 @@ struct ProgramItem: Identifiable, Codable {
     var note: String
     var completed: Bool
 
-    init(id: UUID = UUID(), title: String, date: Date, location: String = "", person: String = "", note: String = "", completed: Bool = false) {
+    init(
+        id: UUID = UUID(),
+        title: String,
+        date: Date,
+        location: String = "",
+        person: String = "",
+        note: String = "",
+        completed: Bool = false
+    ) {
         self.id = id
         self.title = title
         self.date = date
@@ -28,7 +36,13 @@ struct TaskItem: Identifiable, Codable {
     var priority: String
     var completed: Bool
 
-    init(id: UUID = UUID(), title: String, dueDate: Date, priority: String = "Normal", completed: Bool = false) {
+    init(
+        id: UUID = UUID(),
+        title: String,
+        dueDate: Date,
+        priority: String = "Normal",
+        completed: Bool = false
+    ) {
         self.id = id
         self.title = title
         self.dueDate = dueDate
@@ -44,7 +58,13 @@ struct InstructionItem: Identifiable, Codable {
     var responsible: String
     var status: String
 
-    init(id: UUID = UUID(), title: String, dueDate: Date, responsible: String = "", status: String = "Bekliyor") {
+    init(
+        id: UUID = UUID(),
+        title: String,
+        dueDate: Date,
+        responsible: String = "",
+        status: String = "Bekliyor"
+    ) {
         self.id = id
         self.title = title
         self.dueDate = dueDate
@@ -55,14 +75,22 @@ struct InstructionItem: Identifiable, Codable {
 
 final class AppStore: ObservableObject {
     @Published var programs: [ProgramItem] = [
-        ProgramItem(title: "Kurum içi toplantı", date: Calendar.current.date(bySettingHour: 9, minute: 0, second: 0, of: Date()) ?? Date(), location: "VIP Toplantı Salonu"),
         ProgramItem(
-    title: "Ziyaret",
-    date: Calendar.current.date(bySettingHour: 10, minute: 30, second: 0, of: Date()) ?? Date(),
-    location: "Merkez",
-    person: "Ahmet Bey"
-)
-        ProgramItem(title: "Saha programı", date: Calendar.current.date(bySettingHour: 14, minute: 0, second: 0, of: Date()) ?? Date(), location: "Turhal")
+            title: "Kurum içi toplantı",
+            date: Calendar.current.date(bySettingHour: 9, minute: 0, second: 0, of: Date()) ?? Date(),
+            location: "VIP Toplantı Salonu"
+        ),
+        ProgramItem(
+            title: "Ziyaret",
+            date: Calendar.current.date(bySettingHour: 10, minute: 30, second: 0, of: Date()) ?? Date(),
+            location: "Merkez",
+            person: "Ahmet Bey"
+        ),
+        ProgramItem(
+            title: "Saha programı",
+            date: Calendar.current.date(bySettingHour: 14, minute: 0, second: 0, of: Date()) ?? Date(),
+            location: "Turhal"
+        )
     ]
 
     @Published var tasks: [TaskItem] = [
@@ -71,19 +99,34 @@ final class AppStore: ObservableObject {
     ]
 
     @Published var instructions: [InstructionItem] = [
-        InstructionItem(title: "Çöreğibüyük yolu incelenecek", dueDate: Calendar.current.date(byAdding: .day, value: 2, to: Date()) ?? Date(), responsible: "Mehmet"),
-        InstructionItem(title: "İhale konusu araştırılacak", dueDate: Calendar.current.date(byAdding: .day, value: 3, to: Date()) ?? Date(), responsible: "Ahmet", status: "Devam ediyor")
+        InstructionItem(
+            title: "Çöreğibüyük yolu incelenecek",
+            dueDate: Calendar.current.date(byAdding: .day, value: 2, to: Date()) ?? Date(),
+            responsible: "Mehmet"
+        ),
+        InstructionItem(
+            title: "İhale konusu araştırılacak",
+            dueDate: Calendar.current.date(byAdding: .day, value: 3, to: Date()) ?? Date(),
+            responsible: "Ahmet",
+            status: "Devam ediyor"
+        )
     ]
 
     func addProgram(title: String, date: Date, person: String, location: String, note: String) {
-        programs.append(ProgramItem(title: title, date: date, location: location, person: person, note: note))
+        let item = ProgramItem(
+            title: title,
+            date: date,
+            location: location,
+            person: person,
+            note: note
+        )
+        programs.append(item)
         programs.sort { $0.date < $1.date }
     }
 
     func toggleTask(_ task: TaskItem) {
-        if let i = tasks.firstIndex(where: { $0.id == task.id }) {
-            tasks[i].completed.toggle()
-        }
+        guard let index = tasks.firstIndex(where: { $0.id == task.id }) else { return }
+        tasks[index].completed.toggle()
     }
 }
 
@@ -91,20 +134,22 @@ struct AICommandResult {
     var message: String
     var shouldAddProgram: Bool
     var title: String
+    var person: String
     var date: Date
 }
 
 final class AICommandParser {
     static func parse(_ input: String) -> AICommandResult {
-        let lower = input.lowercased()
+        let trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines)
+        let lower = trimmed.lowercased()
         let calendar = Calendar.current
         let now = Date()
-        var targetDate = now
 
-        if lower.contains("yarın") {
-            targetDate = calendar.date(byAdding: .day, value: 1, to: now) ?? now
-        } else if lower.contains("öbür gün") {
+        var targetDate = now
+        if lower.contains("öbür gün") {
             targetDate = calendar.date(byAdding: .day, value: 2, to: now) ?? now
+        } else if lower.contains("yarın") {
+            targetDate = calendar.date(byAdding: .day, value: 1, to: now) ?? now
         }
 
         var hour = 9
@@ -113,40 +158,63 @@ final class AICommandParser {
         if let match = lower.range(of: pattern, options: .regularExpression) {
             let raw = String(lower[match]).replacingOccurrences(of: ".", with: ":")
             let parts = raw.split(separator: ":")
-            hour = Int(parts.first ?? "9") ?? 9
-            if parts.count > 1 { minute = Int(parts[1]) ?? 0 }
+            if let first = parts.first, let parsedHour = Int(first) {
+                hour = parsedHour
+            }
+            if parts.count > 1, let parsedMinute = Int(parts[1]) {
+                minute = parsedMinute
+            }
         }
+
         if lower.contains("öğleden sonra") && hour < 12 { hour += 12 }
         if lower.contains("akşam") && hour < 12 { hour += 12 }
+        if lower.contains("sabah") && hour == 12 { hour = 0 }
 
         targetDate = calendar.date(bySettingHour: hour, minute: minute, second: 0, of: targetDate) ?? targetDate
 
-        let isProgram = ["ekle", "oluştur", "programa yaz", "programa ekle", "randevu oluştur"]
-            .contains { lower.contains($0) }
+        let shouldAdd = lower.contains("ekle") || lower.contains("oluştur") || lower.contains("yaz")
 
         var title = "Yeni Program"
-        if lower.contains("toplantı") { title = "Toplantı" }
-        else if lower.contains("ziyaret") { title = "Ziyaret" }
-        else if lower.contains("saha") { title = "Saha programı" }
-        else if let range = lower.range(of: "ile görüşme") {
-            let before = String(input[..<range.lowerBound])
-            let words = before.split(separator: " ")
-            if let last = words.last { title = "\(last) ile görüşme" }
+        var person = ""
+
+        if let range = lower.range(of: "ile görüşme") {
+            let before = String(trimmed[..<range.lowerBound])
+            let cleaned = before
+                .replacingOccurrences(of: "yarın", with: "", options: .caseInsensitive)
+                .replacingOccurrences(of: "öbür gün", with: "", options: .caseInsensitive)
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            let words = cleaned.split(separator: " ")
+            if words.count >= 2 {
+                person = words.suffix(2).joined(separator: " ")
+            } else if let first = words.last {
+                person = String(first)
+            }
+            title = "Görüşme"
+        } else if lower.contains("toplantı") {
+            title = "Toplantı"
+        } else if lower.contains("ziyaret") {
+            title = "Ziyaret"
+        } else if lower.contains("saha") {
+            title = "Saha programı"
         }
 
-        if isProgram {
+        if shouldAdd {
+            var detail = targetDate.formatted(date: .abbreviated, time: .shortened)
+            if !person.isEmpty { detail += " — \(person)" }
             return AICommandResult(
-                message: "Programı hazırladım: \(targetDate.formatted(date: .abbreviated, time: .shortened)) — \(title).",
+                message: "Programı hazırladım: \(detail).",
                 shouldAddProgram: true,
                 title: title,
+                person: person,
                 date: targetDate
             )
         }
 
         return AICommandResult(
-            message: "Şimdilik “yarın saat 10'da Ahmet Bey ile görüşme ekle” gibi bir komut kullanabilirsiniz.",
+            message: "Örnek: “Yarın saat 10'da Ahmet Bey ile görüşme ekle”.",
             shouldAddProgram: false,
             title: title,
+            person: person,
             date: targetDate
         )
     }

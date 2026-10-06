@@ -5,7 +5,9 @@ struct DashboardView: View {
     @State private var showingAdd = false
 
     private var todayPrograms: [ProgramItem] {
-        store.programs.filter { Calendar.current.isDateInToday($0.date) }.sorted { $0.date < $1.date }
+        store.programs
+            .filter { Calendar.current.isDateInToday($0.date) }
+            .sorted { $0.date < $1.date }
     }
 
     var body: some View {
@@ -15,7 +17,7 @@ struct DashboardView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(greeting)
                             .font(.title2.weight(.semibold))
-                        Text(Date.now.formatted(.dateTime.weekday(.wide).day().month(.wide)))
+                        Text(todayText)
                             .foregroundStyle(.secondary)
                     }
 
@@ -33,7 +35,7 @@ struct DashboardView: View {
                         Text("Bugünkü Program")
                             .font(.title3.bold())
                         Spacer()
-                        Button("Tümü") {}
+                        Button("Tümü") { }
                             .font(.subheadline.weight(.semibold))
                     }
 
@@ -70,6 +72,13 @@ struct DashboardView: View {
         if hour < 12 { return "Günaydın 👋" }
         if hour < 18 { return "İyi günler 👋" }
         return "İyi akşamlar 👋"
+    }
+
+    private var todayText: String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "tr_TR")
+        formatter.dateFormat = "EEEE, d MMMM yyyy"
+        return formatter.string(from: Date()).capitalized
     }
 }
 

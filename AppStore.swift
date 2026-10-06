@@ -56,7 +56,12 @@ struct InstructionItem: Identifiable, Codable {
 final class AppStore: ObservableObject {
     @Published var programs: [ProgramItem] = [
         ProgramItem(title: "Kurum içi toplantı", date: Calendar.current.date(bySettingHour: 9, minute: 0, second: 0, of: Date()) ?? Date(), location: "VIP Toplantı Salonu"),
-        ProgramItem(title: "Ziyaret", date: Calendar.current.date(bySettingHour: 10, minute: 30, second: 0, of: Date()) ?? Date(), person: "Ahmet Bey", location: "Merkez"),
+        ProgramItem(
+    title: "Ziyaret",
+    date: Calendar.current.date(bySettingHour: 10, minute: 30, second: 0, of: Date()) ?? Date(),
+    location: "Merkez",
+    person: "Ahmet Bey"
+)
         ProgramItem(title: "Saha programı", date: Calendar.current.date(bySettingHour: 14, minute: 0, second: 0, of: Date()) ?? Date(), location: "Turhal")
     ]
 

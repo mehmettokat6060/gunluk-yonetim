@@ -21,12 +21,9 @@ struct CalendarView: View {
                 List {
                     Section(header: Text(sectionTitle)) {
                         if selectedPrograms.isEmpty {
-                            Text("Bu gün için program bulunmuyor.")
-                                .foregroundStyle(.secondary)
+                            Text("Bu gün için program bulunmuyor.").foregroundStyle(.secondary)
                         } else {
-                            ForEach(selectedPrograms) { item in
-                                ProgramRow(item: item)
-                            }
+                            ForEach(selectedPrograms) { item in ProgramRow(item: item) }
                         }
                     }
                 }
@@ -35,16 +32,11 @@ struct CalendarView: View {
             .navigationTitle("Takvim")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showingAdd = true
-                    } label: {
-                        Image(systemName: "plus")
-                    }
+                    Button { showingAdd = true } label: { Image(systemName: "plus") }
                 }
             }
             .sheet(isPresented: $showingAdd) {
-                AddProgramView()
-                    .environmentObject(store)
+                AddProgramView().environmentObject(store)
             }
         }
     }

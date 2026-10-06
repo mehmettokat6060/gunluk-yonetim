@@ -3,7 +3,6 @@ import SwiftUI
 struct AddProgramView: View {
     @EnvironmentObject private var store: AppStore
     @Environment(\.dismiss) private var dismiss
-
     @State private var title = ""
     @State private var date = Date()
     @State private var person = ""
@@ -17,29 +16,25 @@ struct AddProgramView: View {
                     TextField("Program başlığı", text: $title)
                     DatePicker("Tarih ve saat", selection: $date)
                 }
-
                 Section("Detaylar") {
                     TextField("Görüşülecek kişi", text: $person)
                     TextField("Konum", text: $location)
                     TextField("Not", text: $note, axis: .vertical)
                 }
-
                 Section {
                     Button {
-                        guard !title.trimmingCharacters(in: .whitespaces).isEmpty else { return }
-                        store.addProgram(title: title, date: date, person: person, location: location, note: note)
+                        let cleanTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+                        guard !cleanTitle.isEmpty else { return }
+                        store.addProgram(title: cleanTitle, date: date, person: person, location: location, note: note)
                         dismiss()
                     } label: {
-                        Text("Programı Kaydet")
-                            .frame(maxWidth: .infinity)
+                        Text("Programı Kaydet").frame(maxWidth: .infinity)
                     }
                 }
             }
             .navigationTitle("Program Ekle")
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Kapat") { dismiss() }
-                }
+                ToolbarItem(placement: .cancellationAction) { Button("Kapat") { dismiss() } }
             }
         }
     }

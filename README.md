@@ -1,18 +1,9 @@
-# Yönetici Asistanı v0.3
+# Yönetici Asistanı v0.4
 
 SwiftUI tabanlı iOS MVP prototipi.
 
-Bu sürümde:
-- Ana sayfa
-- Takvim
-- Program ekleme
-- Görevler
-- Talimatlar
-- AI Asistan prototipi
-- Yönetici hafızası için temel menü
-- GitHub Actions üzerinde macOS/Xcode ile otomatik derleme
+Bu sürüm önceki derleme sorunlarını azaltmak için kaynak dosyaları baştan ve tutarlı şekilde düzenler. Özellikle `ProgramItem` çağrılarında isimli parametre sırası tek biçime getirildi ve AI Asistan program eklerken kişi bilgisini de korur.
 
-## GitHub Actions
-`project.yml` dosyası XcodeGen ile gerçek Xcode projesi üretir. `.github/workflows/ios-build.yml` ise iOS Simulator hedefi için imzasız derleme yapar.
+GitHub Actions üzerinde XcodeGen ile Xcode projesi oluşturulur ve iOS Simulator hedefi için imzasız derleme yapılır.
 
-Bu yöntem uygulamayı App Store'a yüklemez; yalnızca kodun derlenebilir olduğunu test eder. TestFlight/App Store için daha sonra Apple Developer imzalama ve App Store Connect kurulumu gerekir.
+Not: Bu workflow yalnızca derleme testi yapar. Gerçek iPhone kurulumu/TestFlight için Apple Developer imzalama ve App Store Connect kurulumu ayrıca gerekir.

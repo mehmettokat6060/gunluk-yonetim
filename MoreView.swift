@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MoreView: View {
     @EnvironmentObject private var store: AppStore
+
     var body: some View {
         NavigationStack {
             List {
@@ -12,8 +13,7 @@ struct MoreView: View {
                     PlaceholderView(title: "Notlar", icon: "note.text")
                 }
                 NavigationLink("AI Asistan", systemImage: "sparkles") {
-                    AIAssistantView()
-                        .environmentObject(store)
+                    AIAssistantView().environmentObject(store)
                 }
                 NavigationLink("Yönetici Hafızası", systemImage: "brain.head.profile") {
                     PlaceholderView(title: "Yönetici Hafızası", icon: "brain.head.profile")
@@ -32,7 +32,14 @@ struct PlaceholderView: View {
     let icon: String
 
     var body: some View {
-        ContentUnavailableView(title, systemImage: icon, description: Text("Bu bölüm MVP'nin sonraki adımında geliştirilecek."))
-            .navigationTitle(title)
+        VStack(spacing: 12) {
+            Image(systemName: icon).font(.system(size: 42))
+            Text(title).font(.title3.bold())
+            Text("Bu bölüm sonraki sürümde geliştirilecek.")
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding()
+        .navigationTitle(title)
     }
 }

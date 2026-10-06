@@ -15,10 +15,8 @@ struct DashboardView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(greeting)
-                            .font(.title2.weight(.semibold))
-                        Text(todayText)
-                            .foregroundStyle(.secondary)
+                        Text(greeting).font(.title2.weight(.semibold))
+                        Text(todayText).foregroundStyle(.secondary)
                     }
 
                     HStack(spacing: 12) {
@@ -32,15 +30,15 @@ struct DashboardView: View {
                     }
 
                     HStack {
-                        Text("Bugünkü Program")
-                            .font(.title3.bold())
+                        Text("Bugünkü Program").font(.title3.bold())
                         Spacer()
-                        Button("Tümü") { }
-                            .font(.subheadline.weight(.semibold))
                     }
 
                     if todayPrograms.isEmpty {
-                        ContentUnavailableView("Bugün program yok", systemImage: "calendar.badge.plus")
+                        Text("Bugün program yok.")
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .padding(.vertical, 30)
                     } else {
                         ForEach(todayPrograms) { item in
                             ProgramRow(item: item)
@@ -52,17 +50,12 @@ struct DashboardView: View {
             .navigationTitle("Yönetici Asistanı")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showingAdd = true
-                    } label: {
-                        Image(systemName: "plus")
-                    }
-                    .accessibilityLabel("Program ekle")
+                    Button { showingAdd = true } label: { Image(systemName: "plus") }
+                        .accessibilityLabel("Program ekle")
                 }
             }
             .sheet(isPresented: $showingAdd) {
-                AddProgramView()
-                    .environmentObject(store)
+                AddProgramView().environmentObject(store)
             }
         }
     }
@@ -89,13 +82,9 @@ struct SummaryCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Image(systemName: icon)
-                .font(.title3)
-            Text(value)
-                .font(.title.bold())
-            Text(title)
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            Image(systemName: icon).font(.title3)
+            Text(value).font(.title.bold())
+            Text(title).font(.caption).foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
@@ -111,14 +100,9 @@ struct ProgramRow: View {
             Text(item.date.formatted(date: .omitted, time: .shortened))
                 .font(.headline)
                 .frame(width: 62, alignment: .leading)
-
             VStack(alignment: .leading, spacing: 4) {
-                Text(item.title)
-                    .font(.body.weight(.semibold))
-                if !item.person.isEmpty {
-                    Text(item.person)
-                        .foregroundStyle(.secondary)
-                }
+                Text(item.title).font(.body.weight(.semibold))
+                if !item.person.isEmpty { Text(item.person).foregroundStyle(.secondary) }
                 if !item.location.isEmpty {
                     Label(item.location, systemImage: "mappin.and.ellipse")
                         .font(.caption)

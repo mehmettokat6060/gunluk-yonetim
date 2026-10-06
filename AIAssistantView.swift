@@ -10,12 +10,9 @@ struct AIAssistantView: View {
         NavigationStack {
             VStack(spacing: 18) {
                 VStack(spacing: 8) {
-                    Image(systemName: "sparkles")
-                        .font(.system(size: 42))
-                    Text("Yapay Zekâ Asistanı")
-                        .font(.title2.bold())
-                    Text("Programınızı doğal cümlelerle yönetin.")
-                        .foregroundStyle(.secondary)
+                    Image(systemName: "sparkles").font(.system(size: 42))
+                    Text("Yapay Zekâ Asistanı").font(.title2.bold())
+                    Text("Programınızı doğal cümlelerle yönetin.").foregroundStyle(.secondary)
                 }
                 .padding(.top, 24)
 
@@ -40,7 +37,7 @@ struct AIAssistantView: View {
                                 store.addProgram(
                                     title: result.title,
                                     date: result.date,
-                                    person: "",
+                                    person: result.person,
                                     location: "",
                                     note: "AI Asistan ile oluşturuldu"
                                 )
@@ -59,12 +56,8 @@ struct AIAssistantView: View {
                 HStack(alignment: .bottom, spacing: 10) {
                     TextField("Komutunuzu yazın...", text: $command, axis: .vertical)
                         .textFieldStyle(.roundedBorder)
-
-                    Button {
-                        result = AICommandParser.parse(command)
-                    } label: {
-                        Image(systemName: "arrow.up.circle.fill")
-                            .font(.system(size: 34))
+                    Button { result = AICommandParser.parse(command) } label: {
+                        Image(systemName: "arrow.up.circle.fill").font(.system(size: 34))
                     }
                     .disabled(command.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
@@ -72,7 +65,7 @@ struct AIAssistantView: View {
             .padding()
             .navigationTitle("AI Asistan")
             .alert("Program eklendi", isPresented: $showSaved) {
-                Button("Tamam", role: .cancel) {}
+                Button("Tamam", role: .cancel) { }
             }
         }
     }

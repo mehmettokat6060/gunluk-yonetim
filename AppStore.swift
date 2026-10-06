@@ -74,45 +74,58 @@ struct InstructionItem: Identifiable, Codable {
 }
 
 final class AppStore: ObservableObject {
-    @Published var programs: [ProgramItem] = [
-        ProgramItem(
-            title: "Kurum içi toplantı",
-            date: Calendar.current.date(bySettingHour: 9, minute: 0, second: 0, of: Date()) ?? Date(),
-            location: "VIP Toplantı Salonu"
-        ),
-        ProgramItem(
-            title: "Ziyaret",
-            date: Calendar.current.date(bySettingHour: 10, minute: 30, second: 0, of: Date()) ?? Date(),
-            location: "Merkez",
-            person: "Ahmet Bey"
-        ),
-        ProgramItem(
-            title: "Saha programı",
-            date: Calendar.current.date(bySettingHour: 14, minute: 0, second: 0, of: Date()) ?? Date(),
-            location: "Turhal"
-        )
-    ]
+    @Published var programs: [ProgramItem] = []
+    @Published var tasks: [TaskItem] = []
+    @Published var instructions: [InstructionItem] = []
 
-    @Published var tasks: [TaskItem] = [
-        TaskItem(title: "Ahmet Bey'i ara", dueDate: Date(), priority: "Önemli"),
-        TaskItem(title: "Toplantı notlarını kontrol et", dueDate: Date())
-    ]
+    init() {
+        seedDemoData()
+    }
 
-    @Published var instructions: [InstructionItem] = [
-        InstructionItem(
-            title: "Çöreğibüyük yolu incelenecek",
-            dueDate: Calendar.current.date(byAdding: .day, value: 2, to: Date()) ?? Date(),
-            responsible: "Mehmet"
-        ),
-        InstructionItem(
-            title: "İhale konusu araştırılacak",
-            dueDate: Calendar.current.date(byAdding: .day, value: 3, to: Date()) ?? Date(),
-            responsible: "Ahmet",
-            status: "Devam ediyor"
-        )
-    ]
+    private func seedDemoData() {
+        let calendar = Calendar.current
+        let today = Date()
 
-    func addProgram(title: String, date: Date, person: String, location: String, note: String) {
+        programs = [
+            ProgramItem(
+                title: "Kurum içi toplantı",
+                date: calendar.date(bySettingHour: 9, minute: 0, second: 0, of: today) ?? today,
+                location: "VIP Toplantı Salonu"
+            ),
+            ProgramItem(
+                title: "Ziyaret",
+                date: calendar.date(bySettingHour: 10, minute: 30, second: 0, of: today) ?? today,
+                location: "Merkez",
+                person: "Ahmet Bey"
+            ),
+            ProgramItem(
+                title: "Saha programı",
+                date: calendar.date(bySettingHour: 14, minute: 0, second: 0, of: today) ?? today,
+                location: "Turhal"
+            )
+        ]
+
+        tasks = [
+            TaskItem(title: "Ahmet Bey'i ara", dueDate: today, priority: "Önemli"),
+            TaskItem(title: "Toplantı notlarını kontrol et", dueDate: today)
+        ]
+
+        instructions = [
+            InstructionItem(
+                title: "Çöreğibüyük yolu incelenecek",
+                dueDate: calendar.date(byAdding: .day, value: 2, to: today) ?? today,
+                responsible: "Mehmet"
+            ),
+            InstructionItem(
+                title: "İhale konusu araştırılacak",
+                dueDate: calendar.date(byAdding: .day, value: 3, to: today) ?? today,
+                responsible: "Ahmet",
+                status: "Devam ediyor"
+            )
+        ]
+    }
+
+    func addProgram(title: String, date: Date, person: String = "", location: String = "", note: String = "") {
         let item = ProgramItem(
             title: title,
             date: date,
@@ -141,7 +154,7 @@ struct AICommandResult {
 final class AICommandParser {
     static func parse(_ input: String) -> AICommandResult {
         let trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines)
-        let lower = trimmed.lowercased()
+        let lower = trimmed.lowercased(with: Locale(identifier: "tr_TR"))
         let calendar = Calendar.current
         let now = Date()
 
@@ -154,7 +167,7 @@ final class AICommandParser {
 
         var hour = 9
         var minute = 0
-        let pattern = #"(\d{1,2})(?:[:.](\d{2}))?"#
+        let pattern = #"\b(\d{1,2})(?:[:.](\d{2}))?\b"#
         if let match = lower.range(of: pattern, options: .regularExpression) {
             let raw = String(lower[match]).replacingOccurrences(of: ".", with: ":")
             let parts = raw.split(separator: ":")
@@ -169,11 +182,12 @@ final class AICommandParser {
         if lower.contains("öğleden sonra") && hour < 12 { hour += 12 }
         if lower.contains("akşam") && hour < 12 { hour += 12 }
         if lower.contains("sabah") && hour == 12 { hour = 0 }
+        hour = min(max(hour, 0), 23)
+        minute = min(max(minute, 0), 59)
 
         targetDate = calendar.date(bySettingHour: hour, minute: minute, second: 0, of: targetDate) ?? targetDate
 
         let shouldAdd = lower.contains("ekle") || lower.contains("oluştur") || lower.contains("yaz")
-
         var title = "Yeni Program"
         var person = ""
 
@@ -182,6 +196,7 @@ final class AICommandParser {
             let cleaned = before
                 .replacingOccurrences(of: "yarın", with: "", options: .caseInsensitive)
                 .replacingOccurrences(of: "öbür gün", with: "", options: .caseInsensitive)
+                .replacingOccurrences(of: "saat", with: "", options: .caseInsensitive)
                 .trimmingCharacters(in: .whitespacesAndNewlines)
             let words = cleaned.split(separator: " ")
             if words.count >= 2 {
@@ -200,7 +215,9 @@ final class AICommandParser {
 
         if shouldAdd {
             var detail = targetDate.formatted(date: .abbreviated, time: .shortened)
-            if !person.isEmpty { detail += " — \(person)" }
+            if !person.isEmpty {
+                detail += " — \(person)"
+            }
             return AICommandResult(
                 message: "Programı hazırladım: \(detail).",
                 shouldAddProgram: true,

@@ -2,26 +2,44 @@ import SwiftUI
 
 struct InstructionsView: View {
     @EnvironmentObject private var store: AppStore
+    @State private var newInstruction = ""
 
     var body: some View {
-        NavigationStack {
-            List {
-                ForEach(store.instructions) { item in
-                    VStack(alignment: .leading, spacing: 7) {
-                        HStack {
-                            Text(item.title).font(.body.weight(.semibold))
-                            Spacer()
-                            Text(item.status).font(.caption.weight(.semibold))
-                        }
-                        Text("Sorumlu: \(item.responsible)")
-                            .font(.caption).foregroundStyle(.secondary)
-                        Text("Son tarih: \(item.dueDate.formatted(date: .abbreviated, time: .omitted))")
-                            .font(.caption).foregroundStyle(.secondary)
+        List {
+            Section("Yeni Talimat") {
+                HStack {
+                    TextField("Talimat yazın", text: $newInstruction)
+                    Button {
+                        addInstruction()
+                    } label: {
+                        Image(systemName: "plus.circle.fill")
                     }
-                    .padding(.vertical, 5)
+                    .disabled(newInstruction.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
-            .navigationTitle("Talimatlar")
+
+            Section("Talimatlar") {
+                ForEach(store.instructions) { item in
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(item.title)
+                            .fontWeight(.semibold)
+                        if !item.detail.isEmpty {
+                            Text(item.detail)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .padding(.vertical, 4)
+                }
+            }
         }
+        .navigationTitle("Talimatlar")
+    }
+
+    private func addInstruction() {
+        let value = newInstruction.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !value.isEmpty else { return }
+        store.addInstruction(InstructionItem(title: value))
+        newInstruction = ""
     }
 }

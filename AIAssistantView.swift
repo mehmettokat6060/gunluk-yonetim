@@ -2,90 +2,97 @@ import SwiftUI
 
 struct AIAssistantView: View {
     @EnvironmentObject private var store: AppStore
-    @State private var command = ""
-    @State private var result: AICommandResult?
-    @State private var showSaved = false
+    @State private var input = ""
+    @State private var response = "Merhaba. Bana bir program veya iş yazabilirsiniz.\n\nÖrnek: “Yarın saat 10'da Ahmet Bey ile görüşme ekle.”"
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 18) {
-                VStack(spacing: 8) {
-                    Image(systemName: "sparkles").font(.system(size: 42))
-                    Text("Yapay Zekâ Asistanı").font(.title2.bold())
-                    Text("Programınızı doğal cümlelerle yönetin.").foregroundStyle(.secondary)
-                }
-                .padding(.top, 24)
-
+            VStack(spacing: 12) {
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Örnek komutlar").font(.headline)
-                        ExampleCommand(text: "Yarın saat 10'da Ahmet Bey ile görüşme ekle") {
-                            command = "Yarın saat 10'da Ahmet Bey ile görüşme ekle"
-                        }
-                        ExampleCommand(text: "Yarın 14.00'te toplantı ekle") {
-                            command = "Yarın 14.00'te toplantı ekle"
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    Text(response)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding()
+                        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 16))
+                        .padding(.horizontal)
                 }
 
-                if let result {
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text(result.message)
-                        if result.shouldAddProgram {
-                            Button {
-                                store.addProgram(
-                                    title: result.title,
-                                    date: result.date,
-                                    person: result.person,
-                                    location: "",
-                                    note: "AI Asistan ile oluşturuldu"
-                                )
-                                showSaved = true
-                            } label: {
-                                Label("Programa Ekle", systemImage: "calendar.badge.plus")
-                                    .frame(maxWidth: .infinity)
-                            }
-                            .buttonStyle(.borderedProminent)
-                        }
-                    }
-                    .padding()
-                    .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 16))
-                }
-
-                HStack(alignment: .bottom, spacing: 10) {
-                    TextField("Komutunuzu yazın...", text: $command, axis: .vertical)
+                HStack {
+                    TextField("Asistana yazın…", text: $input, axis: .vertical)
                         .textFieldStyle(.roundedBorder)
-                    Button { result = AICommandParser.parse(command) } label: {
-                        Image(systemName: "arrow.up.circle.fill").font(.system(size: 34))
+
+                    Button {
+                        processInput()
+                    } label: {
+                        Image(systemName: "arrow.up.circle.fill")
+                            .font(.title)
                     }
-                    .disabled(command.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .disabled(input.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
+                .padding(.horizontal)
+                .padding(.bottom, 8)
             }
-            .padding()
             .navigationTitle("AI Asistan")
-            .alert("Program eklendi", isPresented: $showSaved) {
-                Button("Tamam", role: .cancel) { }
-            }
         }
     }
-}
 
-struct ExampleCommand: View {
-    let text: String
-    let action: () -> Void
+    private func processInput() {
+        let text = input.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return }
 
-    var body: some View {
-        Button(action: action) {
-            HStack {
-                Image(systemName: "text.bubble")
-                Text(text).multilineTextAlignment(.leading)
-                Spacer()
-            }
-            .padding()
-            .background(.background, in: RoundedRectangle(cornerRadius: 12))
-            .overlay(RoundedRectangle(cornerRadius: 12).stroke(.quaternary))
+        if let hour = extractHour(from: text) {
+            let date = Calendar.current.date(bySettingHour: hour, minute: 0, second: 0, of: Date()) ?? Date()
+            let title = makeTitle(from: text)
+            store.addProgram(
+                ProgramItem(
+                    title: title,
+                    date: date,
+                    person: extractPerson(from: text)
+                )
+            )
+            response = "Programı ekledim:\n\n\(title)\n\(date.formatted(date: .abbreviated, time: .shortened))"
+        } else {
+            response = "Şimdilik program ekleme komutlarını destekliyorum. Örnek:\n“Yarın saat 10'da Ahmet Bey ile görüşme ekle.”"
         }
-        .buttonStyle(.plain)
+
+        input = ""
+    }
+
+    private func extractHour(from text: String) -> Int? {
+        let pattern = #"(\d{1,2})(?:[:.](\d{2}))?\s*(?:'|’)?da|(\d{1,2})(?:[:.](\d{2}))?"#
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) else {
+            return nil
+        }
+
+        let range = NSRange(text.startIndex..<text.endIndex, in: text)
+        guard let match = regex.firstMatch(in: text, range: range) else { return nil }
+
+        for index in 1...5 {
+            if index <= match.numberOfRanges,
+               let matchRange = Range(match.range(at: index), in: text),
+               let value = Int(text[matchRange]),
+               value >= 0, value <= 23 {
+                return value
+            }
+        }
+        return nil
+    }
+
+    private func extractPerson(from text: String) -> String {
+        let lower = text.lowercased()
+        guard let range = lower.range(of: "ile görüş") else { return "" }
+        let prefix = String(text[..<range.lowerBound]).trimmingCharacters(in: .whitespaces)
+        if let start = prefix.range(of: "saat", options: .caseInsensitive) {
+            let person = String(prefix[start.upperBound...])
+                .trimmingCharacters(in: .whitespaces)
+            return person
+        }
+        return ""
+    }
+
+    private func makeTitle(from text: String) -> String {
+        if text.lowercased().contains("görüş") {
+            return "Görüşme"
+        }
+        return text
     }
 }

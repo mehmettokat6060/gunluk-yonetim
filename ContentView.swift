@@ -4,16 +4,29 @@ struct ContentView: View {
     var body: some View {
         TabView {
             DashboardView()
-                .tabItem { Label("Ana Sayfa", systemImage: "house.fill") }
+                .tabItem {
+                    Label("Ana Sayfa", systemImage: "house.fill")
+                }
+
             CalendarView()
-                .tabItem { Label("Takvim", systemImage: "calendar") }
+                .tabItem {
+                    Label("Takvim", systemImage: "calendar")
+                }
+
+            AIAssistantView()
+                .tabItem {
+                    Label("Asistan", systemImage: "sparkles")
+                }
+
             TasksView()
-                .tabItem { Label("Görevler", systemImage: "checkmark.circle") }
-            InstructionsView()
-                .tabItem { Label("Talimatlar", systemImage: "pin.fill") }
+                .tabItem {
+                    Label("İşler", systemImage: "checklist")
+                }
+
             MoreView()
-                .tabItem { Label("Daha Fazla", systemImage: "ellipsis.circle") }
+                .tabItem {
+                    Label("Diğer", systemImage: "ellipsis.circle")
+                }
         }
-        .tint(.blue)
     }
 }

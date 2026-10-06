@@ -14,37 +14,44 @@ struct CalendarView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                DatePicker("Tarih", selection: $selectedDate, displayedComponents: .date)
-                    .datePickerStyle(.graphical)
-                    .padding(.horizontal)
+                DatePicker(
+                    "Tarih",
+                    selection: $selectedDate,
+                    displayedComponents: [.date]
+                )
+                .datePickerStyle(.graphical)
+                .padding(.horizontal)
 
-                List {
-                    Section(header: Text(sectionTitle)) {
-                        if selectedPrograms.isEmpty {
-                            Text("Bu gün için program bulunmuyor.").foregroundStyle(.secondary)
-                        } else {
-                            ForEach(selectedPrograms) { item in ProgramRow(item: item) }
-                        }
+                Divider()
+
+                if selectedPrograms.isEmpty {
+                    ContentUnavailableView(
+                        "Program Yok",
+                        systemImage: "calendar.badge.plus",
+                        description: Text("Bu gün için kayıtlı program bulunmuyor.")
+                    )
+                } else {
+                    List(selectedPrograms) { program in
+                        ProgramRow(program: program)
+                            .listRowSeparator(.hidden)
+                            .listRowBackground(Color.clear)
                     }
+                    .listStyle(.plain)
                 }
-                .listStyle(.insetGrouped)
             }
             .navigationTitle("Takvim")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button { showingAdd = true } label: { Image(systemName: "plus") }
+                    Button {
+                        showingAdd = true
+                    } label: {
+                        Image(systemName: "plus")
+                    }
                 }
             }
             .sheet(isPresented: $showingAdd) {
-                AddProgramView().environmentObject(store)
+                AddProgramView()
             }
         }
-    }
-
-    private var sectionTitle: String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "tr_TR")
-        formatter.dateFormat = "EEEE, d MMMM"
-        return formatter.string(from: selectedDate).capitalized
     }
 }

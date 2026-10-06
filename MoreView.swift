@@ -1,45 +1,60 @@
 import SwiftUI
 
 struct MoreView: View {
-    @EnvironmentObject private var store: AppStore
-
     var body: some View {
         NavigationStack {
             List {
-                NavigationLink("Aranacaklar", systemImage: "phone") {
-                    PlaceholderView(title: "Aranacaklar", icon: "phone")
+                NavigationLink {
+                    InstructionsView()
+                } label: {
+                    Label("Talimatlar", systemImage: "text.book.closed")
                 }
-                NavigationLink("Notlar", systemImage: "note.text") {
-                    PlaceholderView(title: "Notlar", icon: "note.text")
+
+                NavigationLink {
+                    ExecutiveMemoryView()
+                } label: {
+                    Label("Yönetici Hafızası", systemImage: "brain.head.profile")
                 }
-                NavigationLink("AI Asistan", systemImage: "sparkles") {
-                    AIAssistantView().environmentObject(store)
+
+                NavigationLink {
+                    MonthlyProgramView()
+                } label: {
+                    Label("Aylık Program / PDF", systemImage: "doc.richtext")
                 }
-                NavigationLink("Yönetici Hafızası", systemImage: "brain.head.profile") {
-                    PlaceholderView(title: "Yönetici Hafızası", icon: "brain.head.profile")
-                }
-                NavigationLink("Aylık Program / PDF", systemImage: "doc.richtext") {
-                    PlaceholderView(title: "Aylık Program / PDF", icon: "doc.richtext")
-                }
+
+                Label("Notlar", systemImage: "note.text")
+                Label("Aramalar", systemImage: "phone")
             }
-            .navigationTitle("Daha Fazla")
+            .navigationTitle("Diğer")
         }
     }
 }
 
-struct PlaceholderView: View {
-    let title: String
-    let icon: String
-
+struct ExecutiveMemoryView: View {
     var body: some View {
-        VStack(spacing: 12) {
-            Image(systemName: icon).font(.system(size: 42))
-            Text(title).font(.title3.bold())
-            Text("Bu bölüm sonraki sürümde geliştirilecek.")
+        List {
+            Section("Yönetici Hafızası") {
+                Text("Kişiler, kurumlar, önemli notlar ve önceki görüşmeler bu bölümde tutulacak.")
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .navigationTitle("Yönetici Hafızası")
+    }
+}
+
+struct MonthlyProgramView: View {
+    var body: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "doc.richtext")
+                .font(.system(size: 48))
+            Text("Aylık Program")
+                .font(.title2.bold())
+            Text("Bu bölümde aylık programın PDF olarak hazırlanması eklenecek.")
+                .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
+                .padding(.horizontal)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding()
-        .navigationTitle(title)
+        .navigationTitle("Aylık Program")
     }
 }

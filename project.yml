@@ -1,16 +1,21 @@
 name: YoneticiAsistani
+
 options:
-  bundleIdPrefix: com.mehmettokat
+  bundleIdPrefix: com.yonetici
   deploymentTarget:
     iOS: "17.0"
-  createIntermediateGroups: true
-  groupSortPosition: top
+
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    DEVELOPMENT_TEAM: ""
 
 targets:
   YoneticiAsistani:
     type: application
     platform: iOS
     sources:
+      - YoneticiAsistaniApp.swift
       - AppStore.swift
       - ContentView.swift
       - DashboardView.swift
@@ -18,12 +23,15 @@ targets:
       - CalendarView.swift
       - TasksView.swift
       - InstructionsView.swift
-      - MoreView.swift
       - AIAssistantView.swift
-      - YoneticiAsistaniApp.swift
+      - MoreView.swift
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.mehmettokat.yoneticiasistani
-        SWIFT_VERSION: "5.0"
-        TARGETED_DEVICE_FAMILY: "1,2"
-        CODE_SIGNING_ALLOWED: NO
+        PRODUCT_BUNDLE_IDENTIFIER: com.yonetici.YoneticiAsistani
+        INFOPLIST_KEY_CFBundleDisplayName: "Yönetici Asistanı"
+        INFOPLIST_KEY_LSApplicationCategoryType: "public.app-category.business"
+        TARGETED_DEVICE_FAMILY: "1"
+        GENERATE_INFOPLIST_FILE: YES
+    scheme:
+      gatherCoverageData: false
+      testTargets: []
